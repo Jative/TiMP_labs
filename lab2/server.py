@@ -11,13 +11,6 @@ CMD_SEP = "*-*"            # Разделитель в командах, ста�
 
 
 class DBWorker: # Класс для работы с файлом
-    _instance = None                              # Реализация паттерна Singleton
-                                                  # (Одиночка). Не позволяет создать
-    def __new__(cls, *args, **kwargs):            # два объекта, работающих с одним
-        if cls._instance is None:                 # файлом. Это нужно для корректной
-            cls._instance = super().__new__(cls)  # работы мьютекса в нестандартной
-        return cls._instance                      # ситуации
-
     def __init__(self, filename: str):
         self.lock = threading.Lock()              # Создаём мьютекс для работы внутри
         self.filename = filename                  # объекта класса
@@ -52,10 +45,10 @@ class DBWorker: # Класс для работы с файлом
                     for line in book:
                         file.write(line+"\n")
     
-    def get_book_list(self) -> None:
+    def get_book_list(self):
         return list(map(lambda x: x[0], self.books))
     
-    def find_books(self, string: str) -> list[list[str]]:
+    def find_books(self, string):
         found_books = list()
         for book in self.books:
             if string in book[0] or \
@@ -64,7 +57,7 @@ class DBWorker: # Класс для работы с файлом
                found_books.append(book)
         return found_books
     
-    def add_book(self, data: list[str]) -> bool:
+    def add_book(self, data):
         for book in self.books:
             if book[0] == data[0]:
                 return False
@@ -72,7 +65,7 @@ class DBWorker: # Класс для работы с файлом
         self.__write_data()
         return True
     
-    def edit_book(self, book_name: str, index: int, string: str) -> bool:
+    def edit_book(self, book_name, index, string):
         for book in self.books:
             if book_name == book[0]:
                 book[index] = string
@@ -80,7 +73,7 @@ class DBWorker: # Класс для работы с файлом
                 return True
         return False
     
-    def remove_book(self, book_name: str) -> bool:
+    def remove_book(self, book_name):
         for i, book in enumerate(self.books):
             if book_name == book[0]:
                 del self.books[i]
@@ -88,14 +81,14 @@ class DBWorker: # Класс для работы с файлом
                 return True
         return False
     
-    def get_book(self, book_name: str) -> list[str]:
+    def get_book(self, book_name):
         for book in self.books:
             if book[0] == book_name:
                 return book
         return []
 
 
-def send_data(cl_sock: socket.socket, data: list) -> None:
+def send_data(cl_sock, data):
     """
     Функция для отправки данных любого размера. Сначала происходит сериализация
     данных в json и кодирование, считается размер в байтах. Размер отправляется
@@ -108,7 +101,7 @@ def send_data(cl_sock: socket.socket, data: list) -> None:
     if data:
         cl_sock.sendall(dumped_data)
 
-def send_bool(cl_sock: socket.socket, value: bool) -> None:
+def send_bool(cl_sock, value):
     """
     Функция отправки булевых значений. В этом проекте используется для отправки
     результата работы сервера. Единица при успехе и ноль при неудаче
