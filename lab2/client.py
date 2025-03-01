@@ -10,29 +10,29 @@ CMD_SEP = "*-*"                # Разделитель в командах, с�
 
 
 # Переписанные проверки. Тут используются регулярные выражения
-def correct_book_name(book_name: str) -> bool:
+def correct_book_name(book_name):
     return re.match(r"^[A-Za-zА-Яа-я\s,!?]+$", book_name)
 
-def correct_authors(authors: str) -> bool:
+def correct_authors(authors):
     return re.match(r"^[A-Za-zА-Яа-я\s,]+$", authors)
 
-def correct_genre(genre: str) -> bool:
+def correct_genre(genre):
     return re.match(r"^[A-Za-zА-Яа-я\s,]+$", genre)
 
-def correct_year(year: str) -> bool:
+def correct_year(year):
     return re.match(r"^-?\d{1,4}$", year) and \
            int(year) <= datetime.now().year
 
-def correct_size(size: str) -> bool:
+def correct_size(size):
     return re.match(r"^\d+$", size)
 
-def correct_binding(binding: str) -> bool:
+def correct_binding(binding):
     return re.match(r"^(мягкий|твёрдый)$", binding)
 
-def correct_source(source: str) -> bool:
+def correct_source(source):
     return re.match(r"^(покупка|подарок|наследство)$", source)
 
-def correct_date(old_date: str, date: str) -> bool:
+def correct_date(old_date: str, date):
     if not re.match(r"^(0?[1-9]|[12][0-9]|3[01])\.(0?[1-9]|1[0-2])\.(\d{4})$",
                     date):
         return False
@@ -43,18 +43,18 @@ def correct_date(old_date: str, date: str) -> bool:
         return False
     return True
 
-def correct_review(review: str) -> bool:
+def correct_review(review):
     return re.match(r"^[1-5].*$", review)
 
 # Класс для сетевого взаимодействия со стороны клиента. С ним просто удобнее работать
 class Messenger:
-    def __init__(self, addr: str, port: int, buf_size: int, cmd_sep: str):
+    def __init__(self, addr, port, buf_size, cmd_sep):
         self.sock = socket.socket() # При создании нашего посыльного создаём сокет
         self.sock.connect((addr, port)) # Подключаемся к серверу
         self.__chunk_size = buf_size # Сохраняем параметры для работы
         self.__cmd_sep = cmd_sep
     
-    def get_data(self) -> list: # Метод получения данных от сервера
+    def get_data(self): # Метод получения данных от сервера
         """
         Первым делом получаем число от сервера - количество байт, которое
         он должен отправить
@@ -68,10 +68,10 @@ class Messenger:
             received_data += self.sock.recv(min(self.__chunk_size, remaining_bytes))
         return json.loads(received_data) if received_data else []
     
-    def get_bool(self) -> bool: # Метод получения результата от сервера: да или нет
+    def get_bool(self): # Метод получения результата от сервера: да или нет
         return int.from_bytes(self.sock.recv(self.__chunk_size)) # 1 в случае успеха и 0 при неудаче
     
-    def send_command(self, command: str, *args) -> bool: # Метод отправки команды с аргументами
+    def send_command(self, command, *args): # Метод отправки команды с аргументами
         try: # Пытаемся отправить номер команды и аргументы с разделителем
             message = self.__cmd_sep.join([command]+list(args))
             self.sock.send(message.encode("utf-8"))
@@ -79,7 +79,7 @@ class Messenger:
         except:
             return False # Иначе неудачу
     
-    def send_data(self, command: str, data: list) -> bool:
+    def send_data(self, command, data):
         """
         Метод отправки малых данных на сервер (не больше одной почки)
         """
@@ -91,7 +91,7 @@ class Messenger:
             return False
 
 
-def main() -> None: # Главная функция
+def main(): # Главная функция
     try: # Пытаемся подключиться к серверу
         messenger = Messenger("localhost", PORT, CHUNK_SIZE, CMD_SEP)
     except: # При неудаче сообщаем об этом, завершаем выполнение
