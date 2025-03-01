@@ -162,7 +162,7 @@ def work_thread(cl_sock: socket.socket, cl_addr: tuple, db_worker: DBWorker) -> 
     cl_sock.close() # По завершении работы закрываем подключение
 
 
-def main() -> None:
+def main():
     db_worker = DBWorker("books.txt")    # Создание "работника" с книгами
     sock = socket.socket()               # Создание сокета
     sock.bind(("localhost", PORT))       # Прибивание порта к сокету
@@ -173,9 +173,4 @@ def main() -> None:
                              args=(cl_sock, cl_addr, db_worker))
         t.start()                        # Этот поток запускаем
 
-
-if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt: # Завершение работы сервера по ctrl+C
-        print("\nРабота сервера завершена")
+main()
