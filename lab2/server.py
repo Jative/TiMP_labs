@@ -162,15 +162,12 @@ def work_thread(cl_sock: socket.socket, cl_addr: tuple, db_worker: DBWorker) -> 
     cl_sock.close() # По завершении работы закрываем подключение
 
 
-def main():
-    db_worker = DBWorker("books.txt")    # Создание "работника" с книгами
-    sock = socket.socket()               # Создание сокета
-    sock.bind(("localhost", PORT))       # Прибивание порта к сокету
-    sock.listen(1)                       # Единовременно может подключиться лишь один
-    while True:                          # клиент, но их максимальное число не ограничено
-        cl_sock, cl_addr = sock.accept() # В цикле принимаем подключения
-        t = threading.Thread(target=work_thread, # И для каждого создаём по потоку
-                             args=(cl_sock, cl_addr, db_worker))
-        t.start()                        # Этот поток запускаем
-
-main()
+db_worker = DBWorker("books.txt")    # Создание "работника" с книгами
+sock = socket.socket()               # Создание сокета
+sock.bind(("localhost", PORT))       # Прибивание порта к сокету
+sock.listen(1)                       # Единовременно может подключиться лишь один
+while True:                          # клиент, но их максимальное число не ограничено
+    cl_sock, cl_addr = sock.accept() # В цикле принимаем подключения
+    t = threading.Thread(target=work_thread, # И для каждого создаём по потоку
+                         args=(cl_sock, cl_addr, db_worker))
+    t.start()                        # Этот поток запускаем
