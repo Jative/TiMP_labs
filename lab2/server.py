@@ -11,7 +11,7 @@ CMD_SEP = "*-*"            # Разделитель в командах, ста�
 
 
 class DBWorker: # Класс для работы с файлом
-    def __init__(self, filename: str):
+    def __init__(self, filename):
         self.lock = threading.Lock()              # Создаём мьютекс для работы внутри
         self.filename = filename                  # объекта класса
         if self.filename not in os.listdir():
