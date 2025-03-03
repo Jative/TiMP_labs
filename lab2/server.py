@@ -8,6 +8,7 @@ CHUNK_SIZE = 4096          # Размер пачки, которую можно 
 MAX_BAD_REQ_COUNT = 5      # Сколько плохих запросов нужно для закрытия соединения
 PORT = 9090                # Порт сервера
 CMD_SEP = "*-*"            # Разделитель в командах, ставится между аргументами
+CLIENT_LOCK = 0            # Порт клиента, который сейчас работает с данными
 
 
 class DBWorker: # Класс для работы с файлом
@@ -114,6 +115,7 @@ def work_thread(cl_sock: socket.socket, cl_addr: tuple, db_worker: DBWorker) -> 
     Функция работы с отдельным потоком. Она слушает порт сервера и реагирует на
     сообщения от определённого порта клиента. В остальном, всё работает также
     """
+    global CLIENT_LOCK # Делаем информацию о блокировке общей для всех потоков
     print(cl_addr[1], "соединение установлено", sep=": ")
     bad_req_count = 0
     running = True
@@ -133,23 +135,42 @@ def work_thread(cl_sock: socket.socket, cl_addr: tuple, db_worker: DBWorker) -> 
                 found_books = db_worker.find_books(search_string)
                 send_data(cl_sock, found_books)
             case "3":
-                data = json.loads(command.split(CMD_SEP)[1])
-                added = db_worker.add_book(data)
-                send_bool(cl_sock, added)
+                if not CLIENT_LOCK: # Если подключение не заблокировано, выполняем действия
+                    data = json.loads(command.split(CMD_SEP)[1])
+                    added = db_worker.add_book(data)
+                    send_bool(cl_sock, added)
+                else:               # Иначе сообщаем о неудаче
+                    send_bool(cl_sock, False)
             case "4":
-                book_name = command.split(CMD_SEP)[1]
-                index = int(command.split(CMD_SEP)[2])
-                string = command.split(CMD_SEP)[3]
-                edited = db_worker.edit_book(book_name, index, string)
-                send_bool(cl_sock, edited)
+                if not CLIENT_LOCK:
+                    book_name = command.split(CMD_SEP)[1]
+                    index = int(command.split(CMD_SEP)[2])
+                    string = command.split(CMD_SEP)[3]
+                    edited = db_worker.edit_book(book_name, index, string)
+                    send_bool(cl_sock, edited)
+                else:
+                    send_bool(cl_sock, False)
             case "5":
-                book_name = command.split(CMD_SEP)[1]
-                removed = db_worker.remove_book(book_name)
-                send_bool(cl_sock, removed)
+                if not CLIENT_LOCK:
+                    book_name = command.split(CMD_SEP)[1]
+                    removed = db_worker.remove_book(book_name)
+                    send_bool(cl_sock, removed)
+                else:
+                    send_bool(cl_sock, False)
             case "6":
                 book_name = command.split(CMD_SEP)[1]
                 book = db_worker.get_book(book_name)
                 send_data(cl_sock, book)
+            case "10": # Команда блокировки подключения, если оно ещё не заблокировано
+                if not CLIENT_LOCK:
+                    CLIENT_LOCK = cl_addr[1]
+                    send_bool(cl_sock, True)  # Сообщаем об успехе, если блокировка удалась
+                else:
+                    send_bool(cl_sock, False) # Иначе о неудаче
+            case "20": # Команда разблокировки подключения
+                if CLIENT_LOCK == cl_addr[1]: # Разблокировка доступна только тому клиенту,
+                                              # который соединение заблокировал
+                    CLIENT_LOCK = 0
             case "0":
                 running = False
                 print(cl_addr[1], "соединение разорвано клиентом", sep=": ")
