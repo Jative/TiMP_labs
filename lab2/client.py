@@ -99,18 +99,18 @@ def main(): # Главная функция
         return
     print(f"Установлено соединение на порте {messenger.sock.getsockname()[1]}")
 
-    print("Команды")
-    print("1. Список книг")
-    print("2. Поиск по названию, жанру, автору")
-    print("3. Добавление книги")
-    print("4. Редактирование данных книги")
-    print("5. Удаление книги")
-    print("6. Информация о книге")
-    print("0. Выход")
-
     running = True
     while running:
-        print("="*40)
+        print("-"*50)
+        print("Команды")
+        print("1. Список книг")
+        print("2. Поиск по названию, жанру, автору")
+        print("3. Добавление книги")
+        print("4. Редактирование данных книги")
+        print("5. Удаление книги")
+        print("6. Информация о книге")
+        print("0. Выход")
+        print("-"*50)
         while not (inp := input("Команда: ")): pass
         match inp: # Обработка команд по смыслу не изменилась, только теперь они
                    # отправляются на сервер вместо db_worker'а
@@ -129,105 +129,120 @@ def main(): # Главная функция
                 else:
                     print("Ничего не найдено!")
             case "3":
-                data = ["" for i in range(11)]
-                temp = ""
-                while not correct_book_name(temp := input("Название книги: ")):
-                    print("Некорректный ввод!")
-                data[0] = temp
-                while not correct_authors(temp := input("Авторы: ")):
-                    print("Некорректный ввод!")
-                data[1] = temp
-                while not correct_genre(temp := input("Жанр: ")):
-                    print("Некорректный ввод!")
-                data[2] = temp
-                while not correct_year(temp := input("Год выпуска: ")):
-                    print("Некорректный ввод!")
-                data[3] = temp
-                while not correct_size(temp := input("Ширина обложки: ")):
-                    print("Некорректный ввод!")
-                data[4] = temp
-                while not correct_size(temp := input("Высота обложки: ")):
-                    print("Некорректный ввод!")
-                data[5] = temp
-                while not correct_binding(temp := input("Формат переплёта(мягкий, твёрдый): ")):
-                    print("Некорректный ввод!")
-                data[6] = temp
-                while not correct_source(temp := input("Источник(покупка, подарок, наследство): ")):
-                    print("Некорректный ввод!")
-                data[7] = temp
-                while not correct_date("01.01."+data[3], temp := input("Дата появления в библиотеке(ДД.ММ.ГГГГ): ")):
-                    print("Некорректный ввод!")
-                data[8] = temp
-                while not correct_date(data[8], temp := input("Дата прочтения(ДД.ММ.ГГГГ): ")):
-                    print("Некорректный ввод!")
-                data[9] = temp
-                while not correct_review(temp := input("Оценка с комментарием: ")):
-                    print("Некорректный ввод!")
-                data[10] = temp
-                messenger.send_data("3", data)
+                messenger.send_command("10") # Перед работой с данными блокируем подключение на себя
                 if messenger.get_bool():
-                    print(f"Книга '{data[0]}' добавлена успешно!")
+                    data = ["" for i in range(11)]
+                    temp = ""
+                    while not correct_book_name(temp := input("Название книги: ")):
+                        print("Некорректный ввод!")
+                    data[0] = temp
+                    while not correct_authors(temp := input("Авторы: ")):
+                        print("Некорректный ввод!")
+                    data[1] = temp
+                    while not correct_genre(temp := input("Жанр: ")):
+                        print("Некорректный ввод!")
+                    data[2] = temp
+                    while not correct_year(temp := input("Год выпуска: ")):
+                        print("Некорректный ввод!")
+                    data[3] = temp
+                    while not correct_size(temp := input("Ширина обложки: ")):
+                        print("Некорректный ввод!")
+                    data[4] = temp
+                    while not correct_size(temp := input("Высота обложки: ")):
+                        print("Некорректный ввод!")
+                    data[5] = temp
+                    while not correct_binding(temp := input("Формат переплёта(мягкий, твёрдый): ")):
+                        print("Некорректный ввод!")
+                    data[6] = temp
+                    while not correct_source(temp := input("Источник(покупка, подарок, наследство): ")):
+                        print("Некорректный ввод!")
+                    data[7] = temp
+                    while not correct_date("01.01."+data[3], temp := input("Дата появления в библиотеке(ДД.ММ.ГГГГ): ")):
+                        print("Некорректный ввод!")
+                    data[8] = temp
+                    while not correct_date(data[8], temp := input("Дата прочтения(ДД.ММ.ГГГГ): ")):
+                        print("Некорректный ввод!")
+                    data[9] = temp
+                    while not correct_review(temp := input("Оценка с комментарием: ")):
+                        print("Некорректный ввод!")
+                    data[10] = temp
+                    messenger.send_command("20") # Перед отправкой данных разблокируем подключение
+                    messenger.send_data("3", data)
+                    if messenger.get_bool():
+                        print(f"Книга '{data[0]}' добавлена успешно!")
+                    else:
+                        print("Книга с таким названием уже существует!")
                 else:
-                    print("Книга с таким названием уже существует!")
+                    print("Подключение заблокировано")
             case "4":
-                while True:
-                    book_name = input("Точное название книги: ")
-                    messenger.send_command("6", book_name)
-                    if book := messenger.get_data():
-                        break
-                    print("Совпадений не найдено!")
-                print("1. Название книги")
-                print("2. Авторы")
-                print("3. Жанр")
-                print("4. Год выпуска")
-                print("5. Ширина обложки")
-                print("6. Высота обложки")
-                print("7. Формат переплёта")
-                print("8. Источник появления")
-                print("9. Дата появления в библиотеке")
-                print("10. Дата прочтения")
-                print("11. Оценка с комментарием")
-                index = 0
-                while not (1 <= index <= 11):
-                    try:
-                        index = int(input("Что изменить(число): "))
-                    except: pass
-                while True:
-                    string = input("Новое значение: ")
-                    if index == 1 and correct_book_name(string):
-                        break
-                    if index == 2 and correct_authors(string):
-                        break
-                    if index == 3 and correct_genre(string):
-                        break
-                    if index == 4 and correct_year(string):
-                        break
-                    if index in (5, 6) and correct_size(string):
-                        break
-                    if index == 7 and correct_binding(string):
-                        break
-                    if index == 8 and correct_source(string):
-                        break
-                    if index == 9 and correct_date("01.01."+book[3], string) and \
-                                      correct_date(string, book[9]):
-                        break
-                    if index == 10 and correct_date(book[8], string):
-                        break
-                    if index == 11 and correct_review(string):
-                        break
-                    print("Некорректное значение")
-                messenger.send_command("4", book_name, str(index-1), string)
+                messenger.send_command("10")
                 if messenger.get_bool():
-                    print("Изменения внесены успешно!")
+                    while True:
+                        book_name = input("Точное название книги: ")
+                        messenger.send_command("6", book_name)
+                        if book := messenger.get_data():
+                            break
+                        print("Совпадений не найдено!")
+                    print("1. Название книги")
+                    print("2. Авторы")
+                    print("3. Жанр")
+                    print("4. Год выпуска")
+                    print("5. Ширина обложки")
+                    print("6. Высота обложки")
+                    print("7. Формат переплёта")
+                    print("8. Источник появления")
+                    print("9. Дата появления в библиотеке")
+                    print("10. Дата прочтения")
+                    print("11. Оценка с комментарием")
+                    index = 0
+                    while not (1 <= index <= 11):
+                        try:
+                            index = int(input("Что изменить(число): "))
+                        except: pass
+                    while True:
+                        string = input("Новое значение: ")
+                        if index == 1 and correct_book_name(string):
+                            break
+                        if index == 2 and correct_authors(string):
+                            break
+                        if index == 3 and correct_genre(string):
+                            break
+                        if index == 4 and correct_year(string):
+                            break
+                        if index in (5, 6) and correct_size(string):
+                            break
+                        if index == 7 and correct_binding(string):
+                            break
+                        if index == 8 and correct_source(string):
+                            break
+                        if index == 9 and correct_date("01.01."+book[3], string) and \
+                                        correct_date(string, book[9]):
+                            break
+                        if index == 10 and correct_date(book[8], string):
+                            break
+                        if index == 11 and correct_review(string):
+                            break
+                        print("Некорректное значение")
+                    messenger.send_command("20")
+                    messenger.send_command("4", book_name, str(index-1), string)
+                    if messenger.get_bool():
+                        print("Изменения внесены успешно!")
+                    else:
+                        print("Книга с таким названием не найдена!")
                 else:
-                    print("Книга с таким названием не найдена!")
+                    print("Подключение заблокировано")
             case "5":
-                book_name = input("Точное название книги: ")
-                messenger.send_command("5", book_name)
+                messenger.send_command("10")
                 if messenger.get_bool():
-                    print(f"Книга '{book_name}' удалена успешно")
+                    book_name = input("Точное название книги: ")
+                    messenger.send_command("20")
+                    messenger.send_command("5", book_name)
+                    if messenger.get_bool():
+                        print(f"Книга '{book_name}' удалена успешно")
+                    else:
+                        print(f"Книга '{book_name}' не найдена")
                 else:
-                    print(f"Книга '{book_name}' не найдена")
+                    print("Подключение заблокировано")
             case "6":
                 book_name = input("Точное название книги: ")
                 messenger.send_command("6", book_name)
