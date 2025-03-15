@@ -201,11 +201,12 @@ class DBWorker:
         добавляет книгу в список
         Возвращает список найденных книг
         """
+        string = string.lower()
         found_books = list()
         for book in self.books:
-            if string in book[0] or \
-               string in book[1] or \
-               string in book[2]:
+            if string in book[0].lower() or \
+               string in book[1].lower() or \
+               string in book[2].lower():
                found_books.append(book)
         return found_books
     
