@@ -21,7 +21,8 @@ def correct_genre(genre):
 
 def correct_year(year):
     return re.match(r"^-?\d{1,4}$", year) and \
-           int(year) <= datetime.now().year
+           int(year) <= datetime.now().year and \
+           int(year) >= 1500
 
 def correct_size(size):
     return re.match(r"^\d+$", size)
