@@ -56,6 +56,8 @@ def correct_year(year: str) -> bool:
             return False
     if int(year) > datetime.now().year:
         return False
+    if int(year) < 1500:
+        return False
     return True
 
 def correct_size(size: str) -> bool:
